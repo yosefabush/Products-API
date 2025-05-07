@@ -25,16 +25,17 @@ namespace Products
             builder.Host.UseSerilog();
             // Add services to the container.
 
-            //builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            //    options.UseMySql(
-            //        builder.Configuration.GetConnectionString("DefaultConnection"),
-            //        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-            //    )
-            //);
+            // Configure MySQL database
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseMySql(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+                )
+            );
 
             builder.Services.AddControllers();
-            // InMemory for MySQL here:
-            builder.Services.AddDbContext<ApplicationDbContext>(opt => opt.UseInMemoryDatabase("ProductsDb"));
+            // Comment out the in-memory database configuration
+            // builder.Services.AddDbContext<ApplicationDbContext>(opt => opt.UseInMemoryDatabase("ProductsDb"));
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IProductService, ProductService>();
