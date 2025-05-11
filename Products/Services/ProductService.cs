@@ -1,5 +1,6 @@
 ﻿using Products.Domain.Entities;
 using Products.Repositories;
+using Products.Models;
 
 namespace Products.Services
 {
@@ -36,6 +37,14 @@ namespace Products.Services
             if (existing is null) return false;
             await _repository.DeleteAsync(existing);
             return true;
+        }
+
+        public async Task<ProductInventoryDto?> GetProductInventoryAsync(int productId)
+        {
+            var stock = await _repository.GetStockByProductIdAsync(productId);
+            if (stock is null)
+                return null;
+            return new ProductInventoryDto { ProductId = productId, Stock = stock.Value };
         }
     }
 }

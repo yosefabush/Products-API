@@ -108,6 +108,8 @@ namespace Products.Controllers
 
             // Use AutoMapper to map from dto to entity
             var product = _mapper.Map<Product>(dto);
+            // Ensure Stock is set from DTO
+            product.Stock = dto.Stock;
             var created = await _service.CreateAsync(product);
 
             _logger.LogInformation("Product {ProductId} created at {Date}", created.Id, created.CreatedAt);
@@ -135,6 +137,8 @@ namespace Products.Controllers
                 return BadRequest(ModelState);
 
             var product = _mapper.Map<Product>(dto);
+            // Ensure Stock is set from DTO when updating
+            product.Stock = dto.Stock;
             var updated = await _service.UpdateAsync(id, product);
             if (!updated)
                 return NotFound();
@@ -161,6 +165,24 @@ namespace Products.Controllers
 
             _logger.LogInformation("Product {ProductId} deleted", id);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Gets the current stock level for a product
+        /// </summary>
+        /// <param name="id">The ID of the product</param>
+        /// <returns>The current stock level for the product</returns>
+        /// <response code="200">Returns the product's inventory information</response>
+        /// <response code="404">If the product is not found</response>
+        [HttpGet("{id}/inventory")]
+        [ProducesResponseType(typeof(ProductInventoryDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ProductInventoryDto>> GetInventory(int id)
+        {
+            var inventory = await _service.GetProductInventoryAsync(id);
+            if (inventory is null)
+                return NotFound();
+            return Ok(inventory);
         }
     }
 }

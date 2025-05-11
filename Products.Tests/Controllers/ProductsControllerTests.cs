@@ -112,6 +112,40 @@ namespace Products.Tests.Controllers
             Assert.Equal("New Product", returnedProduct.Name);
         }
 
+        [Fact]
+        public async Task GetInventory_WithValidId_ReturnsOkResult_WithInventory()
+        {
+            // Arrange
+            var testId = 1;
+            var inventoryDto = new ProductInventoryDto { ProductId = testId, Stock = 42 };
+            _mockService.Setup(service => service.GetProductInventoryAsync(testId))
+                .ReturnsAsync(inventoryDto);
+
+            // Act
+            var result = await _controller.GetInventory(testId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedInventory = Assert.IsType<ProductInventoryDto>(okResult.Value);
+            Assert.Equal(testId, returnedInventory.ProductId);
+            Assert.Equal(42, returnedInventory.Stock);
+        }
+
+        [Fact]
+        public async Task GetInventory_WithInvalidId_ReturnsNotFound()
+        {
+            // Arrange
+            var testId = 999;
+            _mockService.Setup(service => service.GetProductInventoryAsync(testId))
+                .ReturnsAsync((ProductInventoryDto?)null);
+
+            // Act
+            var result = await _controller.GetInventory(testId);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
         private List<Product> GetTestProducts()
         {
             return new List<Product>

@@ -40,6 +40,9 @@ namespace Products.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(65,30)");
 
+                    b.Property<int>("Stock")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Products");

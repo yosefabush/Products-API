@@ -19,6 +19,12 @@ namespace Products.Repositories
                 .Where(p => p.Name.Contains(name))
                 .ToListAsync();
 
+        public async Task<int?> GetStockByProductIdAsync(int productId)
+        {
+            var product = await _dbContext.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId);
+            return product?.Stock;
+        }
+
         public async Task<Product> AddAsync(Product product)
         {
             _dbContext.Products.Add(product);
