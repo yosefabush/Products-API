@@ -101,6 +101,93 @@ namespace Products.Tests.Repositories
             }
         }
 
+        [Fact]
+        public async Task GetByNameAsync_ShouldReturnMatchingProducts_WhenNameExists()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using (var context = new ApplicationDbContext(options))
+            {
+                context.Products.AddRange(GetTestProducts());
+                await context.SaveChangesAsync();
+            }
+
+            // Act & Assert
+            using (var context = new ApplicationDbContext(options))
+            {
+                var repository = new ProductRepository(context);
+                var products = await repository.GetByNameAsync("Test Product 1");
+                Assert.Single(products);
+                Assert.Equal("Test Product 1", products.First().Name);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldUpdateProduct_WhenProductExists()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using (var context = new ApplicationDbContext(options))
+            {
+                context.Products.AddRange(GetTestProducts());
+                await context.SaveChangesAsync();
+            }
+
+            // Act
+            using (var context = new ApplicationDbContext(options))
+            {
+                var repository = new ProductRepository(context);
+                var product = await repository.GetByIdAsync(1);
+                product!.Name = "Updated Product";
+                await repository.UpdateAsync(product);
+            }
+
+            // Assert
+            using (var context = new ApplicationDbContext(options))
+            {
+                var updatedProduct = await context.Products.FindAsync(1);
+                Assert.NotNull(updatedProduct);
+                Assert.Equal("Updated Product", updatedProduct!.Name);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ShouldRemoveProduct_WhenProductExists()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            using (var context = new ApplicationDbContext(options))
+            {
+                context.Products.AddRange(GetTestProducts());
+                await context.SaveChangesAsync();
+            }
+
+            // Act
+            using (var context = new ApplicationDbContext(options))
+            {
+                var repository = new ProductRepository(context);
+                var product = await repository.GetByIdAsync(1);
+                await repository.DeleteAsync(product!);
+            }
+
+            // Assert
+            using (var context = new ApplicationDbContext(options))
+            {
+                var deletedProduct = await context.Products.FindAsync(1);
+                Assert.Null(deletedProduct);
+                Assert.Equal(2, context.Products.Count());
+            }
+        }
+
         private List<Product> GetTestProducts()
         {
             return new List<Product>

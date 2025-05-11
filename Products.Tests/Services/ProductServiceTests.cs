@@ -121,6 +121,44 @@ namespace Products.Tests.Services
             Assert.All(result, p => Assert.Equal(name, p.Name));
         }
 
+        [Fact]
+        public async Task UpdateAsync_ShouldReturnTrue_WhenProductExists()
+        {
+            // Arrange
+            var mockRepo = new Mock<IProductRepository>();
+            var existingProduct = new Product { Id = 1, Name = "Old Name", Price = 5.99m };
+            var updatedProduct = new Product { Name = "Updated Name", Price = 9.99m };
+            mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingProduct);
+            mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Product>())).Returns(Task.CompletedTask);
+            var service = new ProductService(mockRepo.Object);
+
+            // Act
+            var result = await service.UpdateAsync(1, updatedProduct);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal("Updated Name", existingProduct.Name);
+            Assert.Equal(9.99m, existingProduct.Price);
+            mockRepo.Verify(r => r.UpdateAsync(existingProduct), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldReturnFalse_WhenProductDoesNotExist()
+        {
+            // Arrange
+            var mockRepo = new Mock<IProductRepository>();
+            mockRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Product?)null);
+            var service = new ProductService(mockRepo.Object);
+            var updatedProduct = new Product { Name = "Updated Name", Price = 9.99m };
+
+            // Act
+            var result = await service.UpdateAsync(999, updatedProduct);
+
+            // Assert
+            Assert.False(result);
+            mockRepo.Verify(r => r.UpdateAsync(It.IsAny<Product>()), Times.Never);
+        }
+
         private List<Product> GetTestProducts()
         {
             return new List<Product>
@@ -130,5 +168,6 @@ namespace Products.Tests.Services
                 new Product { Id = 3, Name = "Test Product 3", Price = 30.99m }
             };
         }
+        
     }
 }
