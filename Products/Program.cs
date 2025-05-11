@@ -6,6 +6,7 @@ using Products.Services;
 using System.Reflection;
 using System.IO;
 using Microsoft.OpenApi.Models;
+using AspNetCoreRateLimit;
 
 namespace Products
 {
@@ -82,6 +83,14 @@ namespace Products
                 }
             });
 
+            // Add rate limiting services
+            builder.Services.AddOptions();
+            builder.Services.AddMemoryCache();
+            builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+            builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+            builder.Services.AddInMemoryRateLimiting();
+            builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -98,6 +107,9 @@ namespace Products
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            // Use rate limiting middleware
+            app.UseIpRateLimiting();
 
             app.MapControllers();
 

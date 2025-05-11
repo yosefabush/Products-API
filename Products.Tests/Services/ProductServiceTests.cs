@@ -96,6 +96,31 @@ namespace Products.Tests.Services
             Assert.Equal(15.99m, result.Price);
         }
 
+        [Fact]
+        public async Task GetByNameAsync_ShouldReturnProducts_WhenProductsWithNameExist()
+        {
+            // Arrange
+            var mockRepo = new Mock<IProductRepository>();
+            var name = "Test Product";
+            var expectedProducts = new List<Product>
+            {
+                new Product { Id = 1, Name = name, Price = 10.99m },
+                new Product { Id = 2, Name = name, Price = 12.99m }
+            };
+            mockRepo.Setup(r => r.GetByNameAsync(name))
+                .ReturnsAsync(expectedProducts);
+
+            var service = new ProductService(mockRepo.Object);
+
+            // Act
+            var result = await service.GetByNameAsync(name);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+            Assert.All(result, p => Assert.Equal(name, p.Name));
+        }
+
         private List<Product> GetTestProducts()
         {
             return new List<Product>
